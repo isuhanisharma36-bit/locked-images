@@ -31,49 +31,54 @@ export default function Upload() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: -50 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.8 }}
-    >
-      <h2 className="text-2xl font-semibold text-gray-700 mb-4">
-        Upload & Lock Image
-      </h2>
-      <input
-        type="file"
-        className="mb-4 w-full text-gray-700"
-        onChange={(e) => setFile(e.target.files[0])}
-      />
-      <input
-        type="number"
-        placeholder="Price in INR"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        className="mb-4 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500"
-      />
-      <button
-        onClick={handleUpload}
-        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg shadow-md transition"
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-500 to-indigo-600">
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-lg w-full"
       >
-        Upload
-      </button>
+        <h2 className="text-2xl font-bold mb-6 text-gray-800">
+          Upload & Lock Image
+        </h2>
 
-      {link && (
-        <motion.div
-          className="mt-6 p-4 bg-green-100 border rounded-lg"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
+        <input
+          type="file"
+          onChange={(e) => setFile(e.target.files[0])}
+          className="block w-full mb-4 text-sm text-gray-700"
+        />
+
+        <input
+          type="number"
+          placeholder="Price in INR"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          className="w-full px-4 py-2 border rounded-lg mb-4 focus:ring-2 focus:ring-indigo-400"
+        />
+
+        <button
+          onClick={handleUpload}
+          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg shadow-md transition"
         >
-          <p className="text-gray-800">✅ Share this link:</p>
-          <a
-            href={link}
-            className="text-blue-600 hover:underline break-all"
+          Upload
+        </button>
+
+        {link && (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="mt-6"
           >
-            {link}
-          </a>
-        </motion.div>
-      )}
-    </motion.div>
+            <p className="text-gray-600">Share this link:</p>
+            <a
+              href={link}
+              className="text-indigo-600 font-medium underline break-words"
+            >
+              {link}
+            </a>
+          </motion.div>
+        )}
+      </motion.div>
+    </div>
   )
 }
