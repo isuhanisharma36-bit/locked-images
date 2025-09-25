@@ -1,21 +1,37 @@
+// frontend/src/App.jsx
 import React from "react";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import Upload from "./Upload";
+import LinkView from "./LinkView";
+
+function Nav() {
+  return (
+    <header className="bg-gray-900 text-white px-6 py-3 flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div className="text-2xl font-bold">🔒 Locked Images</div>
+        <span className="text-sm text-gray-300">pay-to-unlock</span>
+      </div>
+      <nav className="space-x-4">
+        <Link to="/" className="hover:text-blue-300">Upload</Link>
+        <Link to="/" className="hover:text-blue-300">Home</Link>
+      </nav>
+    </header>
+  );
+}
 
 export default function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-500 to-indigo-600">
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-10 shadow-xl max-w-xl text-center">
-        <h1 className="text-4xl font-extrabold text-white drop-shadow-md">Hello Tailwind 🚀</h1>
-        <p className="mt-4 text-white/90">Your Tailwind setup is working — nice and simple UI.</p>
-
-        <div className="mt-8 flex justify-center gap-3">
-          <button className="bg-white/20 hover:bg-white/30 text-white px-5 py-2 rounded-lg transition">
-            Primary
-          </button>
-          <button className="bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-lg transition">
-            Secondary
-          </button>
-        </div>
+    <BrowserRouter>
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+        <Nav />
+        <main className="p-6 max-w-4xl mx-auto">
+          <Routes>
+            <Route path="/" element={<Upload />} />
+            <Route path="/l/:id" element={<LinkView />} />
+            <Route path="*" element={<div className="p-8 text-center">Page not found</div>} />
+          </Routes>
+        </main>
       </div>
-    </div>
+    </BrowserRouter>
   );
 }
