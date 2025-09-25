@@ -1,36 +1,92 @@
-import { motion } from "framer-motion"
-import { Link } from "react-router-dom"
+import express from "express"
+import cors from "cors"
+import multer from "multer"
+import Razorpay from "razorpay"
+import dotenv from "dotenv"
+import { v2 as cloudinary } from "cloudinary"
 
-export default function Failure() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-400 to-rose-600 p-6">
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="bg-white p-10 rounded-2xl shadow-2xl text-center max-w-lg"
-      >
-        <motion.div
-          initial={{ rotate: -180 }}
-          animate={{ rotate: 0 }}
-          transition={{ duration: 0.8 }}
-          className="mb-6"
-        >
-          <span className="text-6xl">❌</span>
-        </motion.div>
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">
-          Payment Failed
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Oops! Something went wrong with your payment. Please try again.
-        </p>
-        <Link
-          to="/"
-          className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md transition"
-        >
-          Go Back Home
-        </Link>
-      </motion.div>
-    </div>
-  )
-}
+dotenv.config()
+
+const app = express()
+const PORT = process.env.PORT || 4000
+
+// Middlewares
+app.use(cors())
+app.use(express.json())
+
+// Multer (memory storage, so we send file buffer to Cloudinary)
+const storage = multer.memoryStorage()
+const upload = multer({ storage })
+
+// Database (in-memory for now)
+const images = {}
+
+// Cloudinary config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
+
+// Razorpay instance
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+})
+
+// Routes
+app.post("/api/upload", upload.single("image"), async (req, res) => {
+  try {
+    const fileStr = `data:${req.file.mimetype};base64,${req.file.buffer.toString(
+      "base64"
+    )}`
+
+    const uploadResponse = await cloudinary.uploader.upload(fileStr, {
+      folder: "locked-images",
+    })
+
+    const id = Date.now().toString()
+    images[id] = {
+      url: uploadResponse.secure_url,
+      price: req.body.price,
+    }
+
+    res.json({ id })
+  } catch (err) {
+    console.error("Cloudinary Upload Error:", err)
+    res.status(500).json({ error: "Upload failed" })
+  }
+})
+
+app.get("/api/image/:id", (req, res) => {
+  const image = images[req.params.id]
+  if (!image) return res.status(404).send("Not found")
+  res.json(image)
+})
+
+app.post("/api/pay/:id", async (req, res) => {
+  const image = images[req.params.id]
+  if (!image) return res.status(404).send("Not found")
+
+  try {
+    const order = await razorpay.orders.create({
+      amount: image.price * 100,
+      currency: "INR",
+      payment_capture: 1,
+    })
+
+    res.json({
+      key: process.env.RAZORPAY_KEY_ID,
+      amount: order.amount,
+      orderId: order.id,
+    })
+  } catch (err) {
+    console.error("Razorpay Error:", err)
+    res.status(500).json({ error: "Payment failed" })
+  }
+})
+
+// Start server
+app.listen(PORT, () =>
+  console.log(`🚀 Server running on http://localhost:${PORT}`)
+)
