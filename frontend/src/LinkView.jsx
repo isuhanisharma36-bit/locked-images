@@ -1,27 +1,14 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function LinkView() {
   const { id } = useParams();
-  const [imageUrl, setImageUrl] = useState(null);
-
-  useEffect(() => {
-    const fetchImage = async () => {
-      try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/images/${id}`);
-        setImageUrl(res.data.imageUrl);
-      } catch (err) {
-        console.error("Error fetching image:", err);
-      }
-    };
-    fetchImage();
-  }, [id]);
 
   const handlePayment = async () => {
     try {
       const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/payment`, {
-        amount: 5000, // amount in paise (₹50)
+        amount: 5000, // ₹50
+        imageId: id, // send imageId to backend
       });
 
       const options = {
@@ -31,14 +18,9 @@ export default function LinkView() {
         name: "Locked Images",
         description: "Unlock your image",
         order_id: res.data.id,
-        handler: function (response) {
-          // Redirect to success page after payment
-          window.location.href = "/success";
-        },
-        prefill: {
-          name: "Test User",
-          email: "test@example.com",
-          contact: "9999999999",
+        handler: function () {
+          // Redirect to success page with image id
+          window.location.href = `/success?id=${id}`;
         },
         theme: {
           color: "#6366f1",
