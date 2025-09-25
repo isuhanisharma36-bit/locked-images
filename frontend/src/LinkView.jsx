@@ -9,7 +9,7 @@ export default function LinkView() {
 
   useEffect(() => {
     axios
-      .get(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/image/${id}`)
+      .get(`${import.meta.env.VITE_API_URL || 'https://locked-images-1.onrender.com/'}/api/image/${id}`)
       .then(res => setData(res.data))
       .catch(() => alert('Image not found'))
   }, [id])
@@ -17,7 +17,7 @@ export default function LinkView() {
   const handlePayment = async () => {
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/pay/${id}`
+        `${import.meta.env.VITE_API_URL || 'https://locked-images-1.onrender.com/'}/api/pay/${id}`
       )
 
       const options = {
@@ -54,7 +54,7 @@ export default function LinkView() {
         <div>
           <p>Unlocked 🎉</p>
           <img
-            src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/uploads/${data.filename}`}
+            src={`${import.meta.env.VITE_API_URL || 'https://locked-images-1.onrender.com/'}/uploads/${data.filename}`}
             alt="Unlocked"
             style={{ maxWidth: '400px' }}
           />
