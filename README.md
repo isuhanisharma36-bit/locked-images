@@ -41,11 +41,3 @@ REACT_APP_API_URL=https://your-backend.onrender.com
 
 ---
 
-4. After pasting → scroll down → click the green **Commit changes** button.  
-
----
-
-👉 Once you do this, your repo will show the README text nicely formatted.  
-Then we can start **adding the frontend files**.  
-
-Do you want me to now give you **the first frontend file (`package.json`)** to paste?
