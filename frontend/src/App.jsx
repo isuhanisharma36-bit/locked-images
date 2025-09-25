@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom"
 import Upload from "./Upload"
 import LinkView from "./LinkView"
+import Success from "./Success"
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Upload />} />
             <Route path="/l/:id" element={<LinkView />} />
+            <Route path="/success" element={<Success />} />
           </Routes>
         </motion.div>
       </Router>
