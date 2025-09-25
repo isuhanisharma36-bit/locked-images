@@ -1,43 +1,36 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import axios from "axios";
+import { motion } from "framer-motion"
+import { Link } from "react-router-dom"
 
 export default function Success() {
-  const [searchParams] = useSearchParams();
-  const imageId = searchParams.get("id");
-  const [imageUrl, setImageUrl] = useState(null);
-
-  useEffect(() => {
-    const fetchImage = async () => {
-      try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/images/${imageId}`);
-        setImageUrl(res.data.imageUrl);
-      } catch (err) {
-        console.error("Error fetching image:", err);
-      }
-    };
-    if (imageId) fetchImage();
-  }, [imageId]);
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh] text-center">
-      <h1 className="text-4xl font-bold text-green-400 mb-4">✅ Payment Successful!</h1>
-      <p className="text-lg mb-6">Your image is now unlocked 🎉</p>
-
-      {imageUrl ? (
-        <div className="flex flex-col items-center">
-          <img src={imageUrl} alt="Unlocked" className="rounded-lg shadow-lg max-w-md mb-4" />
-          <a
-            href={imageUrl}
-            download
-            className="bg-green-500 text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-green-600 transition"
-          >
-            Download Image
-          </a>
-        </div>
-      ) : (
-        <p>Loading image...</p>
-      )}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-400 to-emerald-600 p-6">
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="bg-white p-10 rounded-2xl shadow-2xl text-center max-w-lg"
+      >
+        <motion.div
+          initial={{ rotate: -180 }}
+          animate={{ rotate: 0 }}
+          transition={{ duration: 0.8 }}
+          className="mb-6"
+        >
+          <span className="text-6xl">✅</span>
+        </motion.div>
+        <h1 className="text-3xl font-bold text-gray-800 mb-4">
+          Payment Successful!
+        </h1>
+        <p className="text-gray-600 mb-6">
+          Thank you for your purchase. Your image is now unlocked 🎉
+        </p>
+        <Link
+          to="/"
+          className="inline-block px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg shadow-md transition"
+        >
+          Go Back Home
+        </Link>
+      </motion.div>
     </div>
-  );
+  )
 }
