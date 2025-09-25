@@ -1,106 +1,84 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import axios from "axios";
 
 export default function LinkView() {
   const { id } = useParams();
   const [image, setImage] = useState(null);
   const [unlocked, setUnlocked] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState("");
 
-  const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
-  const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY;
-
-  // Load image details from backend
   useEffect(() => {
     const fetchImage = async () => {
       try {
-        const res = await fetch(`${API}/api/image/${id}`);
-        const data = await res.json();
-        if (res.ok) {
-          setImage(data);
-        } else {
-          setMessage("❌ Image not found");
-        }
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/image/${id}`
+        );
+        setImage(res.data);
       } catch (err) {
-        setMessage("❌ Error fetching image: " + err.message);
+        console.error(err);
+        alert("Image not found");
       }
-      setLoading(false);
     };
-
     fetchImage();
   }, [id]);
 
   const handlePayment = async () => {
     try {
-      const res = await fetch(`${API}/api/pay/${id}`, { method: "POST" });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setMessage("❌ Payment init failed");
-        return;
-      }
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/pay/${id}`
+      );
 
       const options = {
-        key: RAZORPAY_KEY,
-        amount: data.amount,
+        key: res.data.key,
+        amount: res.data.amount,
         currency: "INR",
-        order_id: data.orderId,
-        name: "Locked Image",
-        description: "Unlock image after payment",
+        order_id: res.data.orderId,
+        name: "Locked Images",
+        description: "Unlock your image",
         handler: function () {
           setUnlocked(true);
-          setMessage("✅ Payment successful! Image unlocked.");
         },
-        theme: { color: "#4f46e5" },
+        theme: { color: "#4F46E5" },
       };
 
-      const razor = new window.Razorpay(options);
-      razor.open();
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (err) {
-      setMessage("❌ Error: " + err.message);
+      console.error(err);
+      alert("Payment failed");
     }
   };
 
-  if (loading) {
-    return <p className="text-center mt-10">Loading...</p>;
-  }
-
-  if (!image) {
-    return <p className="text-center mt-10 text-red-500">{message}</p>;
-  }
+  if (!image) return <p className="text-center mt-10 text-white">Loading...</p>;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 p-6">
-      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md text-center">
-        <h2 className="text-xl font-bold mb-4">Locked Image</h2>
+    <div className="max-w-lg mx-auto bg-white text-gray-800 rounded-xl shadow-lg p-6 mt-10">
+      <h2 className="text-2xl font-bold mb-4 text-center text-indigo-600">
+        Unlock Image 🔑
+      </h2>
 
-        {unlocked ? (
-          <img
-            src={image.url}
-            alt="Unlocked"
-            className="rounded-lg shadow-md mb-4"
-          />
-        ) : (
-          <div className="mb-4">
-            <div className="w-64 h-40 bg-gray-200 flex items-center justify-center rounded-lg">
-              🔒 Locked
-            </div>
-            <p className="mt-2">Pay ₹{image.price} to unlock</p>
-          </div>
-        )}
-
-        {!unlocked && (
+      {!unlocked ? (
+        <div className="text-center">
+          <p className="mb-4 text-lg font-medium">
+            Pay ₹{image.price} to unlock this image.
+          </p>
           <button
             onClick={handlePayment}
-            className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-semibold"
+            className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition"
           >
             Pay & Unlock
           </button>
-        )}
-
-        {message && <p className="mt-4 text-sm text-gray-700">{message}</p>}
-      </div>
+        </div>
+      ) : (
+        <div className="text-center">
+          <p className="mb-4 font-medium">Here’s your unlocked image 🎉</p>
+          <img
+            src={`${import.meta.env.VITE_API_URL}/uploads/${image.filename}`}
+            alt="Unlocked"
+            className="rounded-lg shadow-md mx-auto"
+          />
+        </div>
+      )}
     </div>
   );
 }
