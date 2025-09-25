@@ -1,51 +1,34 @@
-import { motion } from "framer-motion";
+import { Routes, Route, Link } from "react-router-dom";
+import Upload from "./Upload";
+import LinkView from "./LinkView";
 
 export default function App() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-500 to-indigo-600 p-6">
-      <motion.div
-        className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl p-10 max-w-lg text-center"
-        initial={{ opacity: 0, scale: 0.8, y: 50 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-      >
-        <motion.h1
-          className="text-4xl font-bold text-white mb-4"
-          initial={{ y: -30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          🚀 Hello Tailwind + Animations
-        </motion.h1>
-
-        <motion.p
-          className="text-white/80 mb-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-        >
-          Your Tailwind + Framer Motion setup is live.  
-          Smooth animations and clean UI 🎨
-        </motion.p>
-
-        <div className="flex gap-4 justify-center">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="px-6 py-2 rounded-xl bg-indigo-500 text-white font-medium shadow-lg hover:bg-indigo-600 transition"
-          >
-            Primary
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="px-6 py-2 rounded-xl bg-pink-500 text-white font-medium shadow-lg hover:bg-pink-600 transition"
-          >
-            Secondary
-          </motion.button>
+    <div className="min-h-screen bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white">
+      {/* Navbar */}
+      <nav className="flex justify-between items-center px-6 py-4 bg-black/30 backdrop-blur-md shadow-lg">
+        <Link to="/" className="text-2xl font-bold tracking-wide hover:text-yellow-300 transition">
+          🔒 Locked Images
+        </Link>
+        <div className="space-x-4">
+          <Link to="/" className="hover:text-yellow-300 transition">Upload</Link>
         </div>
-      </motion.div>
+      </nav>
+
+      {/* Main Content */}
+      <div className="flex items-center justify-center py-12 px-6">
+        <div className="w-full max-w-3xl bg-white/10 backdrop-blur-lg rounded-2xl shadow-xl p-8">
+          <Routes>
+            <Route path="/" element={<Upload />} />
+            <Route path="/l/:id" element={<LinkView />} />
+          </Routes>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="text-center py-6 bg-black/20 backdrop-blur-md text-sm">
+        Built with ❤️ using React, Tailwind & Razorpay
+      </footer>
     </div>
   );
 }
