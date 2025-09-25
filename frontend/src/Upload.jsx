@@ -1,73 +1,81 @@
-// frontend/src/Upload.jsx
-import React, { useState } from "react";
-import axios from "axios";
+import { useState } from "react";
 
 export default function Upload() {
   const [file, setFile] = useState(null);
   const [price, setPrice] = useState("");
-  const [link, setLink] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const handleUpload = async () => {
+  // Base API URL from .env
+  const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
     if (!file || !price) {
-      alert("Please select a file and enter price");
+      setMessage("Please select an image and enter a price");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("image", file);
-    formData.append("price", price);
+    setLoading(true);
+    setMessage("");
 
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/upload`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-      setLink(`${window.location.origin}/view?id=${res.data.id}`);
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("price", price);
+
+      const res = await fetch(`${API}/api/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setMessage(`✅ Uploaded successfully! Image ID: ${data.id}`);
+      } else {
+        setMessage(`❌ Upload failed: ${data.error || "Unknown error"}`);
+      }
     } catch (err) {
-      console.error(err);
-      alert("Upload failed");
+      setMessage("❌ Upload failed: " + err.message);
     }
+
+    setLoading(false);
   };
 
   return (
-    <div className="bg-white shadow-lg rounded-2xl p-8 max-w-md w-full text-center">
-      <h2 className="text-2xl font-bold mb-6 text-purple-600">
-        Upload & Lock Image
-      </h2>
-
-      <input
-        type="file"
-        onChange={(e) => setFile(e.target.files[0])}
-        className="mb-4 w-full border rounded-lg px-3 py-2"
-      />
-
-      <input
-        type="number"
-        placeholder="Price in INR"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        className="mb-4 w-full border rounded-lg px-3 py-2"
-      />
-
-      <button
-        onClick={handleUpload}
-        className="bg-purple-600 text-white px-4 py-2 rounded-lg w-full hover:bg-purple-700 transition"
-      >
-        Upload
-      </button>
-
-      {link && (
-        <div className="mt-6">
-          <p className="text-gray-700 mb-2">Share this link:</p>
-          <a
-            href={link}
-            className="text-indigo-600 font-semibold underline break-all"
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-6">
+      <div className="bg-white shadow-md rounded-lg p-8 w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-4 text-center text-gray-800">
+          Upload Image
+        </h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFile(e.target.files[0])}
+            className="w-full border p-2 rounded"
+          />
+          <input
+            type="number"
+            placeholder="Enter price (₹)"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            className="w-full border p-2 rounded"
+          />
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white p-2 rounded font-semibold"
           >
-            {link}
-          </a>
-        </div>
-      )}
+            {loading ? "Uploading..." : "Upload"}
+          </button>
+        </form>
+        {message && (
+          <p className="mt-4 text-center text-sm text-gray-700">{message}</p>
+        )}
+      </div>
     </div>
   );
 }
