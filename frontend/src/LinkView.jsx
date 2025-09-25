@@ -1,22 +1,18 @@
-import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function LinkView() {
   const { id } = useParams();
-  const [image, setImage] = useState(null);
-  const [unlocked, setUnlocked] = useState(false);
+  const [imageUrl, setImageUrl] = useState(null);
 
   useEffect(() => {
     const fetchImage = async () => {
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/image/${id}`
-        );
-        setImage(res.data);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/images/${id}`);
+        setImageUrl(res.data.imageUrl);
       } catch (err) {
-        console.error(err);
-        alert("Image not found");
+        console.error("Error fetching image:", err);
       }
     };
     fetchImage();
@@ -24,61 +20,48 @@ export default function LinkView() {
 
   const handlePayment = async () => {
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/pay/${id}`
-      );
+      const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/payment`, {
+        amount: 5000, // amount in paise (₹50)
+      });
 
       const options = {
-        key: res.data.key,
+        key: import.meta.env.VITE_RAZORPAY_KEY,
         amount: res.data.amount,
         currency: "INR",
-        order_id: res.data.orderId,
         name: "Locked Images",
         description: "Unlock your image",
-        handler: function () {
-          setUnlocked(true);
+        order_id: res.data.id,
+        handler: function (response) {
+          // Redirect to success page after payment
+          window.location.href = "/success";
         },
-        theme: { color: "#4F46E5" },
+        prefill: {
+          name: "Test User",
+          email: "test@example.com",
+          contact: "9999999999",
+        },
+        theme: {
+          color: "#6366f1",
+        },
       };
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      const razor = new window.Razorpay(options);
+      razor.open();
     } catch (err) {
-      console.error(err);
-      alert("Payment failed");
+      console.error("Payment error:", err);
     }
   };
 
-  if (!image) return <p className="text-center mt-10 text-white">Loading...</p>;
-
   return (
-    <div className="max-w-lg mx-auto bg-white text-gray-800 rounded-xl shadow-lg p-6 mt-10">
-      <h2 className="text-2xl font-bold mb-4 text-center text-indigo-600">
-        Unlock Image 🔑
-      </h2>
+    <div className="flex flex-col items-center justify-center min-h-[70vh]">
+      <h1 className="text-3xl font-bold mb-4">Unlock Image 🔒</h1>
 
-      {!unlocked ? (
-        <div className="text-center">
-          <p className="mb-4 text-lg font-medium">
-            Pay ₹{image.price} to unlock this image.
-          </p>
-          <button
-            onClick={handlePayment}
-            className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition"
-          >
-            Pay & Unlock
-          </button>
-        </div>
-      ) : (
-        <div className="text-center">
-          <p className="mb-4 font-medium">Here’s your unlocked image 🎉</p>
-          <img
-            src={`${import.meta.env.VITE_API_URL}/uploads/${image.filename}`}
-            alt="Unlocked"
-            className="rounded-lg shadow-md mx-auto"
-          />
-        </div>
-      )}
+      <button
+        onClick={handlePayment}
+        className="bg-yellow-400 text-black px-6 py-3 rounded-lg font-semibold shadow hover:bg-yellow-500 transition"
+      >
+        Pay ₹50 to Unlock
+      </button>
     </div>
   );
 }
