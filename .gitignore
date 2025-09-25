@@ -1,0 +1,9 @@
+# Ignore frontend and backend .env files
+frontend/.env
+backend/.env
+
+# Node modules (common)
+node_modules/
+
+# Build output
+dist/
