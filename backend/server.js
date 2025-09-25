@@ -21,40 +21,39 @@ app.use(express.json());
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Multer for temporary file storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
-  filename: (req, file, cb) => cb(null, Date.now() + "-" + file.originalname),
-});
-const upload = multer({ storage });
-
-// In-memory database
-const images = {};
-
-// Cloudinary config
+// Cloudinary setup
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Razorpay config
+// Multer setup (temp storage before upload to Cloudinary)
+const upload = multer({ dest: "uploads/" });
+
+// In-memory DB
+const images = {};
+
+// Razorpay setup
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Upload Route
+// Routes
+
+// Upload image
 app.post("/api/upload", upload.single("image"), async (req, res) => {
   try {
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: "locked-images",
     });
 
-    fs.unlinkSync(req.file.path); // remove local temp file
+    fs.unlinkSync(req.file.path); // delete temp file
 
     const id = Date.now().toString();
     images[id] = {
+      id,
       url: result.secure_url,
       price: req.body.price,
     };
@@ -66,14 +65,19 @@ app.post("/api/upload", upload.single("image"), async (req, res) => {
   }
 });
 
-// ✅ Get Single Image
+// Get single image (details only, not unlocked yet)
 app.get("/api/image/:id", (req, res) => {
   const image = images[req.params.id];
   if (!image) return res.status(404).send("Not found");
   res.json(image);
 });
 
-// ✅ Payment Route
+// ✅ New route: Get all images
+app.get("/api/images", (req, res) => {
+  res.json(Object.values(images));
+});
+
+// Create Razorpay order
 app.post("/api/pay/:id", async (req, res) => {
   const image = images[req.params.id];
   if (!image) return res.status(404).send("Not found");
@@ -92,17 +96,11 @@ app.post("/api/pay/:id", async (req, res) => {
     });
   } catch (err) {
     console.error("Payment error:", err);
-    res.status(500).json({ error: "Payment failed" });
+    res.status(500).send("Payment creation failed");
   }
-});
-
-// ✅ Gallery Route (fetch all images)
-app.get("/api/images", (req, res) => {
-  const allImages = Object.values(images);
-  res.json(allImages);
 });
 
 // Start server
 app.listen(PORT, () =>
-  console.log(`🚀 Server running on http://localhost:${PORT}`)
+  console.log(`✅ Server running on http://localhost:${PORT}`)
 );
