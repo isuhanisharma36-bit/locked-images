@@ -3,6 +3,7 @@ import Upload from "./Upload";
 import LinkView from "./LinkView";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import Success from "./components/Success";
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Upload />} />
             <Route path="/l/:id" element={<LinkView />} />
+            <Route path="/success" element={<Success />} />
           </Routes>
         </main>
 
