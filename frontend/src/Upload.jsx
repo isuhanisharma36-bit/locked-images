@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 
+const API = import.meta.env.VITE_API_URL || "https://locked-images-1.onrender.com";
+
 export default function Upload() {
   const [file, setFile] = useState(null)
   const [price, setPrice] = useState('')
@@ -18,10 +20,11 @@ export default function Upload() {
 
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'https://locked-images-1.onrender.com/'}/api/upload`,
+        `${API}/api/upload`,
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } }
       )
+      // backend returns { id }
       setLink(`${window.location.origin}/l/${res.data.id}`)
     } catch (err) {
       console.error(err)
