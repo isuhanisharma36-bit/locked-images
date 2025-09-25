@@ -5,6 +5,7 @@ import Razorpay from 'razorpay'
 import dotenv from 'dotenv'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import crypto from 'crypto'
 
 dotenv.config()
 
@@ -51,24 +52,55 @@ app.get('/api/image/:id', (req, res) => {
   res.json(image)
 })
 
+// Create Razorpay order
 app.post('/api/pay/:id', async (req, res) => {
-  const image = images[req.params.id]
-  if (!image) return res.status(404).send('Not found')
+  try {
+    const image = images[req.params.id]
+    if (!image) return res.status(404).send('Not found')
 
-  const order = await razorpay.orders.create({
-    amount: image.price * 100,
-    currency: 'INR',
-    payment_capture: 1
-  })
+    const order = await razorpay.orders.create({
+      amount: Math.round(Number(image.price) * 100), // convert INR to paise
+      currency: 'INR',
+      payment_capture: 1
+    })
 
-  res.json({
-    key: process.env.RAZORPAY_KEY_ID,
-    amount: order.amount,
-    orderId: order.id
-  })
+    res.json({
+      key: process.env.RAZORPAY_KEY_ID, // safe to send to frontend
+      amount: order.amount,
+      currency: order.currency,
+      orderId: order.id
+    })
+  } catch (err) {
+    console.error('Error creating Razorpay order:', err)
+    res.status(500).json({ error: 'Failed to create order' })
+  }
 })
 
-// Serve uploads
+// (Optional but safer) Verify Razorpay payment signature
+app.post('/api/verify-payment', (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({ error: 'Missing required fields' })
+    }
+
+    const generatedSignature = crypto
+      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(razorpay_order_id + '|' + razorpay_payment_id)
+      .digest('hex')
+
+    if (generatedSignature !== razorpay_signature) {
+      return res.status(400).json({ error: 'Invalid signature' })
+    }
+
+    res.json({ success: true })
+  } catch (err) {
+    console.error('Payment verification error:', err)
+    res.status(500).json({ error: 'Verification failed' })
+  }
+})
+
+// Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 // Start server
