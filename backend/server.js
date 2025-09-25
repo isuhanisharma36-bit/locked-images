@@ -1,129 +1,57 @@
-import express from 'express'
-import cors from 'cors'
-import multer from 'multer'
-import Razorpay from 'razorpay'
-import dotenv from 'dotenv'
-import path from 'path'
-import { fileURLToPath } from 'url'
-import crypto from 'crypto'
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import bodyParser from "body-parser";
+import multer from "multer";
+import path from "path";
+import { fileURLToPath } from "url";
 
-dotenv.config()
+// Load environment variables
+dotenv.config();
 
-const app = express()
-const PORT = process.env.PORT || 4000
+const app = express();
 
-// Middlewares
-app.use(cors())
-app.use(express.json())
+// CORS setup (allow frontend from Vercel to talk to backend on Render)
+app.use(cors({
+  origin: "*", // later you can restrict: ["https://your-frontend.vercel.app"]
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 
-// Setup __dirname (for ES modules)
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+app.use(bodyParser.json());
 
-// File upload setup
+// Handle file uploads with multer
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'backend/uploads/'),
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
-})
-const upload = multer({ storage })
-
-// Database (in-memory for now)
-const images = {}
-
-// Razorpay instance
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET
-})
-
-// Routes
-app.post('/api/upload', upload.single('image'), (req, res) => {
-  const id = Date.now().toString()
-  images[id] = {
-    filename: req.file.filename,
-    price: req.body.price
-  }
-  res.json({ id })
-})
-
-app.get('/api/image/:id', (req, res) => {
-  const image = images[req.params.id]
-  if (!image) return res.status(404).send('Not found')
-  res.json(image)
-})
-
-// Create Razorpay order
-app.post('/api/pay/:id', async (req, res) => {
-  try {
-    const image = images[req.params.id];
-    if (!image) return res.status(404).send('Not found');
-
-    const order = await razorpay.orders.create({
-      amount: Math.round(Number(image.price) * 100),
-      currency: 'INR',
-      payment_capture: 1
-    });
-
-    res.json({
-      key: process.env.RAZORPAY_KEY_ID,
-      amount: order.amount,
-      currency: order.currency,
-      orderId: order.id
-    });
-  } catch (err) {
-    console.error('Error creating Razorpay order:', err);
-    res.status(500).json({ error: 'Failed to create order' });
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // save files in uploads folder
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname);
   }
 });
 
-// Verify payment
-app.post('/api/verify-payment', (req, res) => {
-  try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return res.status(400).json({ error: 'Missing fields' });
-    }
-    const generatedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(razorpay_order_id + '|' + razorpay_payment_id)
-      .digest('hex');
+const upload = multer({ storage });
 
-    if (generatedSignature !== razorpay_signature) {
-      return res.status(400).json({ error: 'Invalid signature' });
-    }
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Payment verification error:', err);
-    res.status(500).json({ error: 'Verification failed' });
-  }
+// API routes
+app.get("/", (req, res) => {
+  res.json({ message: "Backend is running successfully 🚀" });
 });
 
-// (Optional but safer) Verify Razorpay payment signature
-app.post('/api/verify-payment', (req, res) => {
-  try {
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body
-    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      return res.status(400).json({ error: 'Missing required fields' })
-    }
+app.post("/upload", upload.single("file"), (req, res) => {
+  res.json({
+    message: "File uploaded successfully",
+    file: req.file
+  });
+});
 
-    const generatedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-      .update(razorpay_order_id + '|' + razorpay_payment_id)
-      .digest('hex')
+// Serve uploaded files statically
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-    if (generatedSignature !== razorpay_signature) {
-      return res.status(400).json({ error: 'Invalid signature' })
-    }
-
-    res.json({ success: true })
-  } catch (err) {
-    console.error('Payment verification error:', err)
-    res.status(500).json({ error: 'Verification failed' })
-  }
-})
-
-// Serve uploaded files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
-
-// Start server
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`))
+// Pick PORT from Render or fallback to 5000 locally
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
+});
