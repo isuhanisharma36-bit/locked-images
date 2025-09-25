@@ -7,28 +7,42 @@ import LinkView from "./LinkView";
 export default function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gradient-to-r from-purple-500 to-indigo-600 flex flex-col items-center p-6">
-        <nav className="mb-8 flex gap-4">
-          <Link
-            to="/"
-            className="bg-white text-purple-600 px-4 py-2 rounded-lg shadow hover:bg-gray-100"
-          >
-            Upload
-          </Link>
-          <Link
-            to="/view"
-            className="bg-white text-purple-600 px-4 py-2 rounded-lg shadow hover:bg-gray-100"
-          >
-            View Link
-          </Link>
-        </nav>
+      <div className="min-h-screen bg-gradient-to-br from-purple-500 via-indigo-600 to-blue-700 flex flex-col">
+        {/* Navbar */}
+        <header className="bg-white shadow-md py-4">
+          <div className="container mx-auto flex justify-between items-center px-6">
+            <h1 className="text-xl font-bold text-indigo-600">
+              🔒 Locked Images
+            </h1>
+            <nav className="flex gap-4">
+              <Link
+                to="/"
+                className="text-indigo-600 font-medium hover:text-indigo-800"
+              >
+                Upload
+              </Link>
+              <Link
+                to="/view"
+                className="text-indigo-600 font-medium hover:text-indigo-800"
+              >
+                View Link
+              </Link>
+            </nav>
+          </div>
+        </header>
 
-        <div className="flex-grow flex items-center justify-center w-full">
+        {/* Main content */}
+        <main className="flex-grow flex items-center justify-center p-6">
           <Routes>
             <Route path="/" element={<Upload />} />
             <Route path="/view" element={<LinkView />} />
           </Routes>
-        </div>
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-white py-4 text-center text-gray-500 text-sm">
+          © {new Date().getFullYear()} Locked Images · Built with ❤️
+        </footer>
       </div>
     </Router>
   );
