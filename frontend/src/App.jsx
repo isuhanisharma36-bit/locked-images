@@ -1,20 +1,21 @@
-import React from 'react'
-import { Routes, Route, Link } from 'react-router-dom'
-import Upload from './Upload'
-import LinkView from './LinkView'
+import React from "react";
 
 export default function App() {
   return (
-    <div style={{ fontFamily: 'Arial, sans-serif', padding: '20px' }}>
-      <h1>🔒 Locked Images</h1>
-      <nav style={{ marginBottom: '20px' }}>
-        <Link to="/">Upload</Link>
-      </nav>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-500 to-indigo-600">
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-10 shadow-xl max-w-xl text-center">
+        <h1 className="text-4xl font-extrabold text-white drop-shadow-md">Hello Tailwind 🚀</h1>
+        <p className="mt-4 text-white/90">Your Tailwind setup is working — nice and simple UI.</p>
 
-      <Routes>
-        <Route path="/" element={<Upload />} />
-        <Route path="/l/:id" element={<LinkView />} />
-      </Routes>
+        <div className="mt-8 flex justify-center gap-3">
+          <button className="bg-white/20 hover:bg-white/30 text-white px-5 py-2 rounded-lg transition">
+            Primary
+          </button>
+          <button className="bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-lg transition">
+            Secondary
+          </button>
+        </div>
+      </div>
     </div>
-  )
+  );
 }
