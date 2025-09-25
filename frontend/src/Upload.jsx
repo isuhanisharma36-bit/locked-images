@@ -18,7 +18,7 @@ export default function Upload() {
 
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload`,
+        `${import.meta.env.VITE_API_URL || 'https://locked-images-1.onrender.com/'}/api/upload`,
         formData,
         { headers: { 'Content-Type': 'multipart/form-data' } }
       )
