@@ -1,57 +1,52 @@
-import React, { useState } from 'react'
-import axios from 'axios'
-
-const API = import.meta.env.VITE_API_URL || "https://locked-images-1.onrender.com";
+// frontend/src/Upload.jsx
+import React, { useState } from "react";
 
 export default function Upload() {
-  const [file, setFile] = useState(null)
-  const [price, setPrice] = useState('')
-  const [link, setLink] = useState('')
+  const [file, setFile] = useState(null);
+  const [price, setPrice] = useState("");
 
-  const handleUpload = async () => {
-    if (!file || !price) {
-      alert('Please select a file and enter price')
-      return
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!file) {
+      alert("Please select an image first");
+      return;
     }
-
-    const formData = new FormData()
-    formData.append('image', file)
-    formData.append('price', price)
-
-    try {
-      const res = await axios.post(
-        `${API}/api/upload`,
-        formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
-      )
-      // backend returns { id }
-      setLink(`${window.location.origin}/l/${res.data.id}`)
-    } catch (err) {
-      console.error(err)
-      alert('Upload failed')
-    }
-  }
+    alert(`Pretend we upload: ${file.name} with price $${price}`);
+    // 🔗 Later we will connect this to your backend API
+  };
 
   return (
-    <div>
-      <h2>Upload & Lock Image</h2>
-      <input type="file" onChange={e => setFile(e.target.files[0])} />
-      <br />
-      <input
-        type="number"
-        placeholder="Price in INR"
-        value={price}
-        onChange={e => setPrice(e.target.value)}
-      />
-      <br />
-      <button onClick={handleUpload}>Upload</button>
-
-      {link && (
+    <div className="bg-white rounded-xl shadow-lg p-8">
+      <h1 className="text-2xl font-bold mb-6">Upload Locked Image</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <p>Share this link:</p>
-          <a href={link}>{link}</a>
+          <label className="block mb-1 font-medium">Choose Image</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFile(e.target.files[0])}
+            className="w-full border rounded px-3 py-2"
+          />
         </div>
-      )}
+        <div>
+          <label className="block mb-1 font-medium">Price (USD)</label>
+          <input
+            type="number"
+            min="0"
+            step="0.01"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            placeholder="e.g. 2.99"
+            className="w-full border rounded px-3 py-2"
+          />
+        </div>
+        <button
+          type="submit"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+        >
+          Upload
+        </button>
+      </form>
     </div>
-  )
+  );
 }
