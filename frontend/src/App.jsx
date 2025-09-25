@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Home from "./Home";
 import About from "./About";
 import Contact from "./Contact";
+import Gallery from "./Gallery";
 import Footer from "./Footer";
 
 export default function App() {
@@ -14,6 +15,7 @@ export default function App() {
           <div className="space-x-6">
             <Link to="/" className="hover:text-yellow-300 transition">Home</Link>
             <Link to="/about" className="hover:text-yellow-300 transition">About</Link>
+            <Link to="/gallery" className="hover:text-yellow-300 transition">Gallery</Link>
             <Link to="/contact" className="hover:text-yellow-300 transition">Contact</Link>
           </div>
         </nav>
@@ -23,6 +25,7 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/about" element={<About />} />
+            <Route path="/gallery" element={<Gallery />} />
             <Route path="/contact" element={<Contact />} />
           </Routes>
         </main>
