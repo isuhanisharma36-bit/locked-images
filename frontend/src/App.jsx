@@ -1,37 +1,35 @@
 // frontend/src/App.jsx
 import React from "react";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Upload from "./Upload";
 import LinkView from "./LinkView";
 
-function Nav() {
-  return (
-    <header className="bg-gray-900 text-white px-6 py-3 flex items-center justify-between">
-      <div className="flex items-center gap-3">
-        <div className="text-2xl font-bold">🔒 Locked Images</div>
-        <span className="text-sm text-gray-300">pay-to-unlock</span>
-      </div>
-      <nav className="space-x-4">
-        <Link to="/" className="hover:text-blue-300">Upload</Link>
-        <Link to="/" className="hover:text-blue-300">Home</Link>
-      </nav>
-    </header>
-  );
-}
-
 export default function App() {
   return (
-    <BrowserRouter>
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
-        <Nav />
-        <main className="p-6 max-w-4xl mx-auto">
+    <Router>
+      <div className="min-h-screen bg-gradient-to-r from-purple-500 to-indigo-600 flex flex-col items-center p-6">
+        <nav className="mb-8 flex gap-4">
+          <Link
+            to="/"
+            className="bg-white text-purple-600 px-4 py-2 rounded-lg shadow hover:bg-gray-100"
+          >
+            Upload
+          </Link>
+          <Link
+            to="/view"
+            className="bg-white text-purple-600 px-4 py-2 rounded-lg shadow hover:bg-gray-100"
+          >
+            View Link
+          </Link>
+        </nav>
+
+        <div className="flex-grow flex items-center justify-center w-full">
           <Routes>
             <Route path="/" element={<Upload />} />
-            <Route path="/l/:id" element={<LinkView />} />
-            <Route path="*" element={<div className="p-8 text-center">Page not found</div>} />
+            <Route path="/view" element={<LinkView />} />
           </Routes>
-        </main>
+        </div>
       </div>
-    </BrowserRouter>
+    </Router>
   );
 }
