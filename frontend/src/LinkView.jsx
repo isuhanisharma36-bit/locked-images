@@ -1,65 +1,85 @@
-import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import axios from 'axios'
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
+
+// Always point to your live backend
+const API = import.meta.env.VITE_API_URL || "https://locked-images-1.onrender.com";
 
 export default function LinkView() {
-  const { id } = useParams()
-  const [data, setData] = useState(null)
-  const [unlocked, setUnlocked] = useState(false)
+  const { id } = useParams();
+  const [data, setData] = useState(null);
+  const [unlocked, setUnlocked] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  // Load image details
   useEffect(() => {
+    setLoading(true);
     axios
-      .get(`${import.meta.env.VITE_API_URL || 'https://locked-images-1.onrender.com/'}/api/image/${id}`)
-      .then(res => setData(res.data))
-      .catch(() => alert('Image not found'))
-  }, [id])
+      .get(`${API}/api/image/${id}`)
+      .then((res) => setData(res.data))
+      .catch((err) => {
+        console.error(err);
+        alert("Image not found");
+      })
+      .finally(() => setLoading(false));
+  }, [id]);
 
+  // Handle Razorpay payment
   const handlePayment = async () => {
     try {
-      const res = await axios.post(
-        `${import.meta.env.VITE_API_URL || 'https://locked-images-1.onrender.com/'}/api/pay/${id}`
-      )
+      const orderRes = await axios.post(`${API}/api/pay/${id}`);
+      const { key, amount, currency, orderId } = orderRes.data;
 
       const options = {
-        key: res.data.key,
-        amount: res.data.amount,
-        currency: 'INR',
-        name: 'LockedImages',
-        description: 'Unlock Image',
-        order_id: res.data.orderId,
-        handler: function () {
-          setUnlocked(true)
-        }
-      }
+        key,
+        amount,
+        currency,
+        name: "Locked Images",
+        description: "Unlock image",
+        order_id: orderId,
+        handler: async function (response) {
+          try {
+            // Verify payment with backend
+            await axios.post(`${API}/api/verify-payment`, response);
+            setUnlocked(true);
+          } catch (err) {
+            console.error("Verification failed:", err);
+            alert("Payment verification failed");
+          }
+        },
+        theme: {
+          color: "#3399cc",
+        },
+      };
 
-      const rzp = new window.Razorpay(options)
-      rzp.open()
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (err) {
-      console.error(err)
-      alert('Payment failed')
+      console.error(err);
+      alert("Payment failed");
     }
-  }
+  };
 
-  if (!data) return <p>Loading...</p>
+  if (loading) return <p>Loading...</p>;
 
   return (
     <div>
       <h2>Locked Image</h2>
       {!unlocked ? (
-        <div>
+        <>
           <p>Price: ₹{data.price}</p>
           <button onClick={handlePayment}>Pay & Unlock</button>
-        </div>
+        </>
       ) : (
-        <div>
-          <p>Unlocked 🎉</p>
+        <>
+          <p>Unlocked!</p>
           <img
-            src={`${import.meta.env.VITE_API_URL || 'https://locked-images-1.onrender.com/'}/uploads/${data.filename}`}
+            src={`${API}/uploads/${data.filename}`}
             alt="Unlocked"
-            style={{ maxWidth: '400px' }}
+            style={{ maxWidth: "100%" }}
           />
-        </div>
+        </>
       )}
     </div>
-  )
+  );
 }
